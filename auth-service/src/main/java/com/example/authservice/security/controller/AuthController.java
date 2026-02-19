@@ -71,6 +71,15 @@ public class AuthController {
      * 2. During logout, send both the access and refresh tokens to the server.
      *      Refresh token will be revoked
      *      Access token can be blacklisted and maintained in a fast, in memory database, like redis
+     *
+     *  To run redis:
+     *  docker run -d --name redis-auth -p 6379:6379 redis
+     *
+     *  To check if the tokens are being blacklisted in redis
+     *  docker exec -it redis-auth redis-cli
+     *
+     *  type keys *
+     *  Verify your token is present in the keys
      */
 
     @PostMapping("/logout")
