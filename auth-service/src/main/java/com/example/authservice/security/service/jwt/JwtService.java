@@ -1,4 +1,4 @@
-package com.example.authservice.security.jwt;
+package com.example.authservice.security.service.jwt;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -46,6 +46,10 @@ public class JwtService {
     public List<String> extractRoles(String token) {
         var claims = extractAllClaims(token);
         return claims.get("roles", List.class);
+    }
+
+    public boolean isTokenExpired(String token) {
+        return extractAllClaims(token).getExpiration().before(new Date());
     }
 
     private <T> T extractClaims(String token, Function<Claims, T> resolver) {

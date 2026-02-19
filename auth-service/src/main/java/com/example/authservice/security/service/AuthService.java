@@ -6,12 +6,13 @@ import com.example.authservice.security.domain.repo.RoleRepository;
 import com.example.authservice.security.domain.repo.UserRepository;
 import com.example.authservice.security.dto.request.AuthRequest;
 import com.example.authservice.security.dto.request.RegisterRequest;
+import com.example.authservice.security.dto.request.TokenValidationRequest;
 import com.example.authservice.security.dto.response.AuthResponse;
-import com.example.authservice.security.jwt.JwtService;
+import com.example.authservice.security.dto.response.TokenValidationResponse;
+import com.example.authservice.security.service.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -59,5 +60,19 @@ public class AuthService {
         return new AuthResponse(
                 token, "refresh-token-placeholder"
         );
+    }
+
+    public TokenValidationResponse validateToken(TokenValidationRequest request) {
+        if(jwtService.isTokenExpired(request.token())) {
+            return new TokenValidationResponse(false, null, null, "Invalid token");
+        }
+        return new TokenValidationResponse(
+                true,
+                jwtService.extractUserName(request.token()),
+                jwtService.extractRoles(request.token()),
+                "Token validated"
+        );
+
+
     }
 }
