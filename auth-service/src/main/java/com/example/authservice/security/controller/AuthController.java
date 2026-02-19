@@ -4,11 +4,11 @@ import com.example.authservice.security.dto.request.*;
 import com.example.authservice.security.dto.response.AuthResponse;
 import com.example.authservice.security.dto.response.TokenValidationResponse;
 import com.example.authservice.security.service.AuthService;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,17 +82,12 @@ public class AuthController {
      *  Verify your token is present in the keys
      */
 
+    @SneakyThrows
     @PostMapping("/logout")
     public ResponseEntity<AuthResponse> logout(@RequestBody LogoutRequest request) {
         var response = authService.logout(request);
         return ResponseEntity.ok(response);
     }
 
-    @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<TokenValidationResponse> expiredJwtException(ExpiredJwtException ex) {
-        var response =
-                new TokenValidationResponse(false, null, null,
-                        ex.getMessage());
-        return ResponseEntity.internalServerError().body(response);
-    }
+
 }

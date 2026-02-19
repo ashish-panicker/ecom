@@ -1,5 +1,9 @@
 package com.example.authservice.security.service;
 
+import com.example.authservice.global.exceptions.auth.DuplicateUserDetailsException;
+import com.example.authservice.global.exceptions.auth.RoleDoesNotExistsException;
+import com.example.authservice.global.exceptions.auth.UserDoesNotExistsException;
+import com.example.authservice.global.exceptions.token.InvalidRefreshTokenException;
 import com.example.authservice.security.domain.entity.RefreshToken;
 import com.example.authservice.security.domain.entity.Role;
 import com.example.authservice.security.domain.entity.User;
@@ -16,8 +20,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Set;
 
 @Service
@@ -35,10 +39,10 @@ public class AuthService {
     public User register(RegisterRequest request) {
         userRepository.findByUsernameOrEmail(request.username(), request.email())
                 .ifPresent(user -> {
-                    throw new RuntimeException(user.getUsername() + " already exists.");
+                    throw new DuplicateUserDetailsException(user.getUsername() + " already exists.");
                 });
         Role role = roleRepository.findByName(request.role())
-                .orElseThrow(() -> new RuntimeException("Role " + request.role() + " not present."));
+                .orElseThrow(() -> new RoleDoesNotExistsException("Role " + request.role() + " not present."));
 
         User user = new User(
                 request.username(),
@@ -52,7 +56,7 @@ public class AuthService {
     public AuthResponse login(AuthRequest request) {
 
         var user = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new RuntimeException("User " + request.username() + " not present."));
+                .orElseThrow(() -> new UserDoesNotExistsException("User " + request.username() + " not present."));
         ;
 
         var unauthenticatedUser = new UsernamePasswordAuthenticationToken(
@@ -87,13 +91,14 @@ public class AuthService {
     }
 
     public AuthResponse refreshToken(RefreshTokenValidationRequest request) {
-        var refreshToken = refreshTokenRepository.findByToken(request.refreshToken())
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+        var refreshToken = refreshTokenRepository
+                .findByToken(request.refreshToken())
+                .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
         if (refreshToken.isRevoked()) {
-            throw new RuntimeException("Revoked refresh token");
+            throw new InvalidRefreshTokenException("Revoked refresh token");
         }
         if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
-            throw new RuntimeException("Expired refresh token");
+            throw new InvalidRefreshTokenException("Expired refresh token");
         }
         var user = refreshToken.getUser();
         var roles = user.getRoles().stream().map(Role::getName).toList();
@@ -101,11 +106,11 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken.getToken());
     }
 
-    public AuthResponse logout(LogoutRequest request) {
+    public AuthResponse logout(LogoutRequest request) throws NoSuchAlgorithmException {
 
         // Revoke the refresh token
         var refreshToken = refreshTokenRepository.findByToken(request.refreshToken())
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+                .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
         refreshToken.setRevoked(true);
         refreshTokenRepository.save(refreshToken);
 
