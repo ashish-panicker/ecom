@@ -1,9 +1,6 @@
 package com.example.authservice.security.controller;
 
-import com.example.authservice.security.dto.request.AuthRequest;
-import com.example.authservice.security.dto.request.RefreshTokenValidationRequest;
-import com.example.authservice.security.dto.request.RegisterRequest;
-import com.example.authservice.security.dto.request.TokenValidationRequest;
+import com.example.authservice.security.dto.request.*;
 import com.example.authservice.security.dto.response.AuthResponse;
 import com.example.authservice.security.dto.response.TokenValidationResponse;
 import com.example.authservice.security.service.AuthService;
@@ -56,17 +53,6 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/logout")
-
-
-    @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<TokenValidationResponse> expiredJwtException(ExpiredJwtException ex) {
-        var response =
-                new TokenValidationResponse(false, null, null,
-                        ex.getMessage());
-        return ResponseEntity.internalServerError().body(response);
-    }
-
     /**
      * A user has logged in at 10:00 AM
      * Access token validity is 1 hour, refresh token validity is 24 hours.
@@ -86,4 +72,18 @@ public class AuthController {
      *      Refresh token will be revoked
      *      Access token can be blacklisted and maintained in a fast, in memory database, like redis
      */
+
+    @PostMapping("/logout")
+    public ResponseEntity<AuthResponse> logout(@RequestBody LogoutRequest request) {
+        var response = authService.logout(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<TokenValidationResponse> expiredJwtException(ExpiredJwtException ex) {
+        var response =
+                new TokenValidationResponse(false, null, null,
+                        ex.getMessage());
+        return ResponseEntity.internalServerError().body(response);
+    }
 }

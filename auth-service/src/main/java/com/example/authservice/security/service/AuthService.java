@@ -6,10 +6,7 @@ import com.example.authservice.security.domain.entity.User;
 import com.example.authservice.security.domain.repo.RefreshTokenRepository;
 import com.example.authservice.security.domain.repo.RoleRepository;
 import com.example.authservice.security.domain.repo.UserRepository;
-import com.example.authservice.security.dto.request.AuthRequest;
-import com.example.authservice.security.dto.request.RefreshTokenValidationRequest;
-import com.example.authservice.security.dto.request.RegisterRequest;
-import com.example.authservice.security.dto.request.TokenValidationRequest;
+import com.example.authservice.security.dto.request.*;
 import com.example.authservice.security.dto.response.AuthResponse;
 import com.example.authservice.security.dto.response.TokenValidationResponse;
 import com.example.authservice.security.service.jwt.JwtService;
@@ -20,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Date;
 import java.util.Set;
 
 @Service
@@ -32,6 +30,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final TokenBlackListService blackListService;
 
     public User register(RegisterRequest request) {
         userRepository.findByUsernameOrEmail(request.username(), request.email())
@@ -100,5 +99,21 @@ public class AuthService {
         var roles = user.getRoles().stream().map(Role::getName).toList();
         String accessToken = jwtService.generateToken(user.getUsername(), roles);
         return new AuthResponse(accessToken, refreshToken.getToken());
+    }
+
+    public AuthResponse logout(LogoutRequest request) {
+
+        // Revoke the refresh token
+        var refreshToken = refreshTokenRepository.findByToken(request.refreshToken())
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+        refreshToken.setRevoked(true);
+        refreshTokenRepository.save(refreshToken);
+
+        // Blacklist the access token
+        var expirationDate = jwtService.extractAllClaims(request.accessToken()).getExpiration();
+        var expirationInMillis = expirationDate.getTime() - System.currentTimeMillis();
+        blackListService.blackListToken(request.accessToken(), expirationInMillis);
+
+        return new AuthResponse("nill", "nil");
     }
 }
