@@ -1,0 +1,16 @@
+server:
+  port: 8761
+spring:
+  application:
+    name: discovery-service
+eureka:
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    eviction-interval-timer-in-ms: 4000 # How often eureka checks for dead instances
+    enable-self-preservation: true
+    response-cache-update-interval-ms: 30000
