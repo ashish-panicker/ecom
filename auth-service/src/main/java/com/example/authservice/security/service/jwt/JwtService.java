@@ -1,7 +1,5 @@
 package com.example.authservice.security.service.jwt;
 
-import io.github.cdimascio.dotenv.Dotenv;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -18,14 +16,34 @@ import java.util.function.Function;
 public class JwtService {
 
     private final String JWT_SECRET;
-    private final long EXPIRATION;
+    private final long JWT_TOKEN_EXPIRATION;
+    private final long REFRESH_TOKEN_EXPIRATION;
     private final SecretKey secretKey;
 
     public JwtService() {
-        Dotenv env = Dotenv.configure().load();
         this.JWT_SECRET = "RvEGc4mwJvw5R+Tx1+ZMEkQPVPMuIjMcpWG2YyHfhyqdMKIa53Jhs8iBbRaXqJ2Ug6AgN0afcK1fmb2Y8l2A+w==";
-        this.EXPIRATION = 3600000;
+        this.JWT_TOKEN_EXPIRATION = 3600000;
         this.secretKey = Keys.hmacShaKeyFor(JWT_SECRET.getBytes());
+        this.REFRESH_TOKEN_EXPIRATION = 86400000;
+    }
+
+    public String generateRefreshToken(String userName) {
+        return Jwts.builder()
+                .subject(userName)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
+                .signWith(secretKey, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    public String generateToken(String userName, List<String> roles) {
+        return Jwts.builder()
+                .subject(userName)
+                .claim("roles", roles)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + JWT_TOKEN_EXPIRATION))
+                .signWith(secretKey, Jwts.SIG.HS256)
+                .compact();
     }
 
     public String generateToken(Authentication auth) {
@@ -33,7 +51,7 @@ public class JwtService {
                 .subject(auth.getName())
                 .claim("roles", auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .expiration(new Date(System.currentTimeMillis() + JWT_TOKEN_EXPIRATION))
                 .signWith(secretKey, Jwts.SIG.HS256)
                 .compact();
     }

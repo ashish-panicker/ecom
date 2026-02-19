@@ -111,11 +111,24 @@ HMACSHA256(
 1. Login request
 2. Authentication
   - Validate credentials
-  - Create `Authentication` obeject
+  - Create `Authentication` object
   - If valid then generate JWT
 3. Generate the JWT and add claims
 4. Client stores the JWT
 5. Client will send the JWT using `Authorization` header
+
+## Refresh Tokens
+
+Refresh token is a secondary credential provided to the user that allows the user to obtain a new access token
+without having to supply the credentials again.
+
+**Why do we need refresh tokens?**
+
+- Minimize Security Exposure: Access tokens are sent with every request. This makes them vulnerable to `man-in-the-middle`
+attacks. To prevent this we can try reducing the validity of access tokens or making them expire quickly. 
+  
+- Revocation: JWTs are stateless, and they are not stored in the server or the database. Refresh tokens are stored in the 
+database. In case of a security breach, the refresh token can be deleted preventing anyone from gaining any new access tokens.
 
 ## Purpose
 
@@ -149,9 +162,9 @@ This service is designed to integrate with:
                                  │
                ┌─────────────────┼─────────────────┐
                │                 │                 │
-       ┌───────▼───────┐ ┌──────▼────────┐ ┌──────▼────────┐
-       │ Auth Service  │ │ Product Service │ │ Order Service │
-       │ JWT Issuer    │ │ Business Logic  │ │ Business Logic│
+       ┌───────▼───────┐ ┌──────▼────────┐  ┌──────▼────────┐
+       │ Auth Service  │ │ Product Service  │ │ Order Service │
+       │ JWT Issuer    │ │ Business Logic   │ │ Business Logic│
        └───────┬───────┘ └────────────────┘ └────────────────┘
                │
        ┌───────▼────────┐

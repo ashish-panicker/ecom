@@ -1,6 +1,7 @@
 package com.example.authservice.security.controller;
 
 import com.example.authservice.security.dto.request.AuthRequest;
+import com.example.authservice.security.dto.request.RefreshTokenValidationRequest;
 import com.example.authservice.security.dto.request.RegisterRequest;
 import com.example.authservice.security.dto.request.TokenValidationRequest;
 import com.example.authservice.security.dto.response.AuthResponse;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,6 +50,15 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenValidationRequest request) {
+        var response = authService.refreshToken(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+
+
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<TokenValidationResponse> expiredJwtException(ExpiredJwtException ex) {
         var response =
@@ -57,4 +66,24 @@ public class AuthController {
                         ex.getMessage());
         return ResponseEntity.internalServerError().body(response);
     }
+
+    /**
+     * A user has logged in at 10:00 AM
+     * Access token validity is 1 hour, refresh token validity is 24 hours.
+     * At 10:15 AM the user logs out.
+     *
+     * A user who has an access token valid for 1 hour and a valid refresh token has logged out.
+     * During logout our system revokes/deletes the refresh token.
+     *
+     * After logout  can the same user access our secured endpoints with the existing access token?
+     *
+     * If yes, how will you ensure after logout no access to secured endpoints are made irrespective
+     * of even having a valid access token?
+     *
+     * Two proposals
+     * 1. Reduce the validity time of access token to 5 - 10 minutes.
+     * 2. During logout, send both the access and refresh tokens to the server.
+     *      Refresh token will be revoked
+     *      Access token can be blacklisted and maintained in a fast, in memory database, like redis
+     */
 }

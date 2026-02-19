@@ -8,3 +8,8 @@ public record AuthResponse(
         String refreshToken
 ) {
 }
+
+/**
+ * JWT:         [19/02/2026 9:00 AM - 19/02/2026 9:15 AM]
+ * REFRESH:     [19/02/2026 9:00 AM - 20/02/2026 9:00 AM]
+ */

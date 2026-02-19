@@ -41,4 +41,10 @@ public class RefreshToken {
         this.createdAt = Instant.now();
     }
 
+    public RefreshToken(String token, Instant expiryDate, boolean revoked, User user) {
+        this.token = token;
+        this.expiryDate = expiryDate;
+        this.revoked = revoked;
+        this.user = user;
+    }
 }
