@@ -28,6 +28,12 @@ public class TokenBlackListService {
         return redisTemplate.hasKey(PREFIX.concat(TokenHasher.hashToken(token)));
     }
 
+    /**
+     * Token Hashing
+     * Tokens needs to be hashed before storing in the Redis Database.
+     * This is done to prevent any one from using the tokens if they get access into redis
+     * or get hold of a memory snapshot
+     */
     private static class TokenHasher {
         public static String hashToken(String token) throws NoSuchAlgorithmException {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

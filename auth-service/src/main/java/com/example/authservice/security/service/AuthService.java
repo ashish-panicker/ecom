@@ -19,6 +19,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -36,6 +38,18 @@ public class AuthService {
     private final JwtService jwtService;
     private final TokenBlackListService blackListService;
 
+    /**
+     * @Transactional Transactions are Logical Unit Of Work, a set of statements executed to perform one action.
+     * Atomicity, all or none
+     * Consistency, data must be in consistent format
+     * Isolation, one transaction does not affect the other
+     * Durability, committed changes survives database crashes
+     * <p>
+     * propagation [REQUIRED, REQUIRED_NEW, SUPPORTS, NOT_SUPPORTED, NEVER, NESTED]
+     * <p>
+     * Transactions are automatically rolled back in case a RuntimeException is thrown
+     */
+    @Transactional(rollbackFor = {DuplicateUserDetailsException.class, RoleDoesNotExistsException.class})
     public User register(RegisterRequest request) {
         userRepository.findByUsernameOrEmail(request.username(), request.email())
                 .ifPresent(user -> {
@@ -53,6 +67,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public AuthResponse login(AuthRequest request) {
 
         var user = userRepository.findByUsername(request.username())
@@ -106,6 +121,7 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken.getToken());
     }
 
+    @Transactional
     public AuthResponse logout(LogoutRequest request) throws NoSuchAlgorithmException {
 
         // Revoke the refresh token
