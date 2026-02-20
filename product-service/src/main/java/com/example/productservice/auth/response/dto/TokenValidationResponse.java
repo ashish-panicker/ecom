@@ -1,4 +1,11 @@
 package com.example.productservice.auth.response.dto;
 
-public record TokenValidationResponse() {
+import java.util.List;
+
+public record TokenValidationResponse(
+        boolean valid,
+        String username,
+        List<String> roles,
+        String message
+) {
 }

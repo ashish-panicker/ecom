@@ -33,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(
-            summary = "Login and auhtneticate your credentials",
+            summary = "Login and authenticate your credentials",
             description = "Login to the endpoint with credentials, on successfull login jwt and refrehs token will be shared",
             security = @SecurityRequirement(name = "None")
     )

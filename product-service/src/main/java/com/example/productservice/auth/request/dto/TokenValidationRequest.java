@@ -1,4 +1,4 @@
 package com.example.productservice.auth.request.dto;
 
-public record TokenValidationRequest() {
+public record TokenValidationRequest(String token) {
 }

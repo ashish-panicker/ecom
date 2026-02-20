@@ -14,10 +14,7 @@ public class AuthService {
 
     public TokenValidationResponse validateToken(TokenValidationRequest request) {
         var response = authClient.validateToken(request);
-        if (response.getStatusCode().is2xxSuccessful()) {
-            return response.getBody();
-        }
-        throw new RuntimeException("Failed to validate JWT");
+        return response.getBody();
     }
 
 }
