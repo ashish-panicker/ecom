@@ -1,3 +1,4 @@
+
 spring:
   application:
     name: auth-service
@@ -38,3 +39,5 @@ app:
   node:
     worker-id: 101
     datacenter-id: 114
+server:
+  port: 9000
